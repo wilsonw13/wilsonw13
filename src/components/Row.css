@@ -1,0 +1,36 @@
+.row {
+  display: flex;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.row-single {
+  justify-content: center;
+}
+
+.row-single > * {
+  max-width: 1200px;
+  width: 100%;
+}
+
+.row-three {
+  justify-content: space-between;
+}
+
+.row-three > *:first-child,
+.row-three > *:last-child {
+  flex: 1;
+}
+
+.row-three > *:nth-child(2) {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}

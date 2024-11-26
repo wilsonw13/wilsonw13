@@ -1,33 +1,101 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./styles/App.css";
 
-function App() {
-  const [count, setCount] = useState(0);
+import Row from "./components/Row";
+import Navbar from "./sections/Navbar";
+import Hero from "./sections/Hero";
+import Skills from "./sections/Skills";
+import Projects from "./sections/Projects";
+import Coursework from "./sections/Coursework";
+import Awards from "./sections/Awards";
 
+function App() {
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <div id="content" className="center">
+        <Row sticky>
+          <Navbar />
+        </Row>
+
+        <Row id="home">
+          <Hero />
+        </Row>
+
+        <Row id="skills">
+          <div className="section-title-container">
+            <div>
+              <p className="section-title">Skills</p>
+            </div>
+            <div>
+              <p>
+                {/* Lorem, ipsum dolor sit amet consectetur adipisicing elit. Omnis,
+                dolorum reprehenderit labore minima est beatae reiciendis
+                ratione quidem eaque libero provident itaque nihil temporibus
+                aliquam repudiandae rerum sequi qui fugiat. */}
+              </p>
+            </div>
+          </div>
+
+          <Skills />
+          <div />
+        </Row>
+
+        <Row id="projects">
+          <div className="section-title-container">
+            <div>
+              <p className="section-title">Projects</p>
+            </div>
+            <div>
+              <p>
+                {/* Lorem, ipsum dolor sit amet consectetur adipisicing elit. Omnis,
+                dolorum reprehenderit labore minima est beatae reiciendis
+                ratione quidem eaque libero provident itaque nihil temporibus
+                aliquam repudiandae rerum sequi qui fugiat. */}
+              </p>
+            </div>
+          </div>
+
+          <Projects />
+          <div />
+        </Row>
+
+        <Row id="coursework">
+          <div className="section-title-container">
+            <div>
+              <p className="section-title">Coursework</p>
+            </div>
+            <div>
+              <p>
+                {/* Lorem, ipsum dolor sit amet consectetur adipisicing elit. Omnis,
+                dolorum reprehenderit labore minima est beatae reiciendis
+                ratione quidem eaque libero provident itaque nihil temporibus
+                aliquam repudiandae rerum sequi qui fugiat. */}
+              </p>
+            </div>
+          </div>
+
+          <Coursework />
+          <div />
+        </Row>
+
+        <Row id="awards">
+          <div className="section-title-container">
+            <div>
+              <p className="section-title">Awards</p>
+            </div>
+            <div>
+              <p>
+                {/* Lorem, ipsum dolor sit amet consectetur adipisicing elit. Omnis,
+                dolorum reprehenderit labore minima est beatae reiciendis
+                ratione quidem eaque libero provident itaque nihil temporibus
+                aliquam repudiandae rerum sequi qui fugiat. */}
+              </p>
+            </div>
+          </div>
+
+          <Awards />
+          <div />
+        </Row>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   );
 }
