@@ -7,6 +7,7 @@ import Skills from "./sections/Skills";
 import Projects from "./sections/Projects";
 import Coursework from "./sections/Coursework";
 import Awards from "./sections/Awards";
+import Footer from "./sections/Footer";
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
         <Row id="skills">
           <div className="section-title-container">
             <div>
-              <p className="section-title">Skills</p>
+              <p className="section-title">skills</p>
             </div>
             <div>
               <p>
@@ -42,7 +43,7 @@ function App() {
         <Row id="projects">
           <div className="section-title-container">
             <div>
-              <p className="section-title">Projects</p>
+              <p className="section-title">projects</p>
             </div>
             <div>
               <p>
@@ -61,7 +62,7 @@ function App() {
         <Row id="coursework">
           <div className="section-title-container">
             <div>
-              <p className="section-title">Coursework</p>
+              <p className="section-title">coursework</p>
             </div>
             <div>
               <p>
@@ -80,7 +81,7 @@ function App() {
         <Row id="awards">
           <div className="section-title-container">
             <div>
-              <p className="section-title">Awards</p>
+              <p className="section-title">awards</p>
             </div>
             <div>
               <p>
@@ -96,6 +97,7 @@ function App() {
           <div />
         </Row>
       </div>
+      <Footer />
     </>
   );
 }
