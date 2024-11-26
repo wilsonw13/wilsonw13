@@ -32,11 +32,11 @@ const languages = [
 ];
 
 const frameworks = [
-  { icon: <FaReact />, name: "React" },
+  { icon: <FaReact />, name: "React.js" },
   { icon: <FaVuejs />, name: "Vue.js" },
   { icon: <RiNextjsLine />, name: "Next.js" },
   { icon: <SiNuxtdotjs />, name: "Nuxt.js" },
-  { icon: <SiExpress />, name: "Express" },
+  { icon: <SiExpress />, name: "Express.js" },
   { icon: <RiTailwindCssFill />, name: "Tailwind CSS" },
 ];
 

@@ -12,11 +12,8 @@ import Footer from "./sections/Footer";
 function App() {
   return (
     <>
+      <Navbar />
       <div id="content" className="center">
-        <Row sticky>
-          <Navbar />
-        </Row>
-
         <Row id="home">
           <Hero />
         </Row>
