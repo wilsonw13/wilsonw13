@@ -2,7 +2,7 @@ export default function Navbar() {
   return (
     <nav id="navbar">
       <div className="nav-logo-container">
-        <div />
+        <p>WW</p>
       </div>
       <ul>
         <li>
