@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "naumovs.color-highlight",
+    "dsznajder.es7-react-js-snippets",
+    "ecmel.vscode-html-css",
+    "kisstkondoros.vscode-gutter-preview",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss"
+  ]
+}
