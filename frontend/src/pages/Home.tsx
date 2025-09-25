@@ -1,16 +1,24 @@
-import { useState } from "react";
-import { health } from "@/api";
+import { useState, useEffect } from "react";
+import { useManualApiResource } from "@/hooks/api";
 import viteLogo from "/vite.svg";
 
 const Home = () => {
-  const [healthResult, setHealthResult] = useState<string | null>("");
+  const { data, loading, error, fetchNow } = useManualApiResource<any>("/health");
+  const [showLoading, setShowLoading] = useState<boolean>(false);
+
+  // Delay loading indicator to prevent flicker
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (loading) {
+      timer = setTimeout(() => setShowLoading(true), 200);
+    } else {
+      setShowLoading(false);
+    }
+    return () => timer && clearTimeout(timer);
+  }, [loading]);
 
   const handleHealthCheck = async () => {
-    try {
-      setHealthResult(JSON.stringify(await health(), null, 2));
-    } catch (err) {
-      setHealthResult(err instanceof Error ? err.message : String(err));
-    }
+    await fetchNow();
   };
 
   return (
@@ -35,12 +43,27 @@ const Home = () => {
           </button>
         </div>
         <div className="min-h-[48px]">
-          <code
-            className={`block whitespace-pre text-left font-mono text-base rounded bg-gray-100 p-4 ${healthResult ? (healthResult.startsWith("Error") ? "text-red-600" : "text-green-700") : "text-gray-400"
-              }`}
-          >
-            {healthResult || "Send the network request"}
-          </code>
+          {showLoading ? (
+            <div className="flex items-center gap-2 p-4">
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-t-2 border-gray-400 border-t-blue-500"></span>
+              <span className="text-sm">Loading...</span>
+            </div>
+          ) : (
+            <code
+              className={`block whitespace-pre text-left font-mono text-base rounded bg-gray-100 p-4 ${error
+                ? "text-red-600"
+                : data
+                  ? "text-green-700"
+                  : "text-gray-400"
+                }`}
+            >
+              {error
+                ? `Error: ${error}`
+                : data
+                  ? JSON.stringify(data, null, 2)
+                  : "Send the network request"}
+            </code>
+          )}
         </div>
       </div>
     </div>
