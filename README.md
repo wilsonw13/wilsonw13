@@ -56,3 +56,9 @@ kisstkondoros.vscode-gutter-preview
 esbenp.prettier-vscode
 bradlc.vscode-tailwindcss
 ```
+
+### Running as Docker Container
+```bash
+docker build -t portfolio-app .
+docker run --name portfolio-app -p 3000:3000 --restart unless-stopped -d portfolio-app
+```

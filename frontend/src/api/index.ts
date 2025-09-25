@@ -14,8 +14,8 @@ export const apiFetch = async (path: string, options: RequestInit = {}) => {
 }
 
 // Health Check API
-export const healthCheck = async () => {
-  const response = await apiFetch("/health-check");
+export const health = async () => {
+  const response = await apiFetch("/health");
   if (!response.ok) throw new Error(`Error: ${response.status}`);
   return response.json();
 }

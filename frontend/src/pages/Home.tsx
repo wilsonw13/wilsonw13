@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { healthCheck } from "../api";
+import { health } from "@/api";
 import viteLogo from "/vite.svg";
 
 const Home = () => {
@@ -7,7 +7,7 @@ const Home = () => {
 
   const handleHealthCheck = async () => {
     try {
-      setHealthResult(JSON.stringify(await healthCheck(), null, 2));
+      setHealthResult(JSON.stringify(await health(), null, 2));
     } catch (err) {
       setHealthResult(err instanceof Error ? err.message : String(err));
     }
