@@ -36,9 +36,8 @@ const Home = () => {
         </div>
         <div className="min-h-[48px]">
           <code
-            className={`block whitespace-pre text-left font-mono text-base rounded bg-gray-100 p-4 ${
-              healthResult ? (healthResult.startsWith("Error") ? "text-red-600" : "text-green-700") : "text-gray-400"
-            }`}
+            className={`block whitespace-pre text-left font-mono text-base rounded bg-gray-100 p-4 ${healthResult ? (healthResult.startsWith("Error") ? "text-red-600" : "text-green-700") : "text-gray-400"
+              }`}
           >
             {healthResult || "Send the network request"}
           </code>

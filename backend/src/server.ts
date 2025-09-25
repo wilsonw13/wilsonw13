@@ -5,6 +5,8 @@ import { healthCheckRouter } from "@/router/healthCheck.router";
 import { userRouter } from "@/router/user.router";
 import errorHandler from "@/common/middleware/errorHandler";
 import { addRequestId, captureResponseBody, requestFileLogger, requestConsoleLogger } from "@/common/middleware/requestLogger";
+import { env } from "@/common/utils/envConfig";
+import path from "path";
 
 const app: Express = express();
 // Allow CORS from any origin (must be first middleware)
@@ -27,5 +29,12 @@ app.use("/users", userRouter);
 
 // Error handlers
 app.use(errorHandler());
+
+// Serve frontend static files in production
+// if (env.NODE_ENV === "production") {
+//     const distPath = path.resolve(__dirname, "../../dist");
+//     app.use(express.static(distPath));
+//     app.get("/*", (req, res) => res.sendFile(path.join(distPath, "index.html")));
+// }
 
 export { app };

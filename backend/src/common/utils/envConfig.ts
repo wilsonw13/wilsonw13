@@ -1,21 +1,21 @@
 import dotenv from "dotenv";
 import { z } from "zod";
 
-dotenv.config();
+const environments = ["development", "production", "test"] as const;
 
 const envSchema = z.object({
-	NODE_ENV: z.enum(["development", "production", "test"]).default("production"),
-
-	HOST: z.string().min(1).default("localhost"),
-
-	PORT: z.coerce.number().int().positive().default(8080),
-
-	CORS_ORIGIN: z.string().url().default("http://localhost:8080"),
-
-	COMMON_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(1000),
-
-	COMMON_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(1000),
+	NODE_ENV: z.enum(environments),
+	HOST: z.string().min(1),
+	PORT: z.coerce.number().int().positive(),
+	CORS_ORIGIN: z.string().url(),
+	COMMON_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive(),
+	COMMON_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive(),
 });
+
+dotenv.config();
+
+if (process.env.NODE_ENV === "production")
+	dotenv.config({ path: ".env.production", override: true });
 
 const parsedEnv = envSchema.safeParse(process.env);
 
