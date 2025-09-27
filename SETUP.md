@@ -13,13 +13,11 @@ This document provides all the necessary instructions for setting up the develop
       - [2. VS Code Configuration](#2-vs-code-configuration)
   - [Available Scripts](#available-scripts)
   - [Running for Development](#running-for-development)
-    - [Updated `Dockerfile` to Include Base Config ⚙️](#updated-dockerfile-to-include-base-config-️)
-    - [Updated `SETUP.md` Instructions for Production 📜](#updated-setupmd-instructions-for-production-)
   - [Production Deployment with Docker](#production-deployment-with-docker)
     - [Prerequisites](#prerequisites-1)
     - [Deployment Steps](#deployment-steps)
 
-***
+---
 
 ## Tech Stack
 
@@ -30,7 +28,7 @@ This is a monorepo project built with the following core technologies:
 - **Build & Tooling**: pnpm Workspaces, ESLint, Prettier
 - **Deployment**: Docker, Nginx (as a reverse proxy)
 
-***
+---
 
 ## Prerequisites
 
@@ -42,7 +40,7 @@ Before you begin, ensure you have the following tools installed on your system.
     npm install -g pnpm
     ```
 
-***
+---
 
 ## Development Setup
 
@@ -66,7 +64,7 @@ This repository includes a `.vscode/` directory with settings and extension reco
 - **Extensions**: When you first open this project in VS Code, you should be prompted to install the recommended extensions. Please accept this prompt for the best experience.
 - **Settings**: The `.vscode/settings.json` file contains project-specific settings for formatting (Prettier) and linting (ESLint) that will be applied automatically. You do not need to modify your global user settings.
 
-***
+---
 
 ## Available Scripts
 
@@ -87,7 +85,7 @@ The most important commands are available as pnpm scripts in the root `package.j
 - `pnpm format`
   - Formats all code in the project using Prettier.
 
-***
+---
 
 ## Running for Development
 
@@ -101,79 +99,7 @@ The frontend will be available at `http://localhost:3010`, and the backend API w
 
 Alternatively, if you are using VS Code, you can press `Ctrl + Shift + B` to run the default build task, which will also start both servers.
 
-***
-
-You are absolutely right. Thank you for providing your environment loading code; it clarifies your application's configuration strategy perfectly.
-
-My previous advice was based on the general best practice of externalizing all configuration. However, your setup uses a common and practical hybrid approach:
-
-  * **Base Config**: Non-secret defaults are stored in `.env` and `.env.production` and are safe to be part of the build.
-  * **Secret Overrides**: Sensitive values from `.env.local` are provided at runtime.
-
-Your `dotenv` code with `override: true` is perfectly designed for this. We will update the `Dockerfile` to match this logic.
-
------
-
-### Updated `Dockerfile` to Include Base Config ⚙️
-
-This version copies your non-secret `.env` and `.env.production` files into the final image. The `.dockerignore` file we configured previously already correctly excludes `.env.local`, so no changes are needed there.
-
-**Updated `infra/Dockerfile`:**
-
-```dockerfile
-# ---- Base Stage ----
-FROM node:22-alpine AS base
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# ---- Dependencies Stage ----
-FROM base AS dependencies
-WORKDIR /app
-COPY pnpm-workspace.yaml ./
-COPY package.json pnpm-lock.yaml ./
-COPY backend/package.json ./backend/
-COPY frontend/package.json ./frontend/
-RUN pnpm install --frozen-lockfile
-
-# ---- Builder Stage ----
-FROM base AS builder
-WORKDIR /app
-COPY --from=dependencies /app/node_modules ./node_modules
-COPY . .
-# Copy frontend .env files needed for the Vite build process.
-COPY frontend/.env* ./frontend/
-RUN pnpm build
-
-# ---- Production Stage ----
-FROM base AS production
-WORKDIR /app
-ENV NODE_ENV=production
-
-# Prune node_modules to production-only dependencies for the backend
-COPY --from=dependencies /app/node_modules ./node_modules
-COPY backend/package.json ./
-RUN pnpm prune --prod
-
-# Copy the built backend and frontend assets from the builder stage
-COPY --from=builder /app/backend/dist ./dist
-COPY --from=builder /app/frontend/dist ./dist/public
-
-# V V V ADD THIS SECTION V V V
-# Copy the non-secret environment files for the backend.
-# The app will load these first, then override with runtime secrets.
-COPY backend/.env ./
-COPY backend/.env.production ./
-
-EXPOSE 3000
-CMD [ "pnpm", "start" ]
-```
-
-### Updated `SETUP.md` Instructions for Production 📜
-
-The deployment instructions remain almost the same, but the explanation of the environment file is now more precise. It should contain **only your secrets**.
-
------
+---
 
 ## Production Deployment with Docker
 
