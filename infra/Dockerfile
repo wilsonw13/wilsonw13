@@ -32,5 +32,4 @@ COPY --from=builder /app/backend/dist ./dist
 COPY --from=builder /app/frontend/dist ./dist/public
 
 EXPOSE 3000
-# This is correct. It runs the 'start' script from the backend/package.json
 CMD [ "pnpm", "start" ]
