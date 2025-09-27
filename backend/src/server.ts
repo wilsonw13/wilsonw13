@@ -1,49 +1,58 @@
+// Third-party packages
 import cors from "cors";
-import express, { type Express } from "express";
+import express, { type Express, Router } from "express";
 import helmet from "helmet";
 import path from "path";
 
+// Internal modules
 import { healthRouter } from "@/router/health.router";
 import { userRouter } from "@/router/user.router";
-import errorHandler from "@/common/middleware/errorHandler";
-import {
-  addRequestId,
-  captureResponseBody,
-  requestFileLogger,
-  requestConsoleLogger,
-} from "@/common/middleware/requestLogger";
-import { env } from "@/common/utils/envConfig";
 import { openAPIRouter } from "@/router/openAPI.router";
-import { Router } from "express";
+import errorHandler from "@/common/middleware/errorHandler";
+import { logger, requestLogger, addRequestId } from "@/common/middleware/requestLogger";
+import { env } from "@/common/utils/envConfig";
 
 const app: Express = express();
-app.use(cors({ origin: "*", credentials: false })); // trust all domains for now (*)
-app.set("trust proxy", true); // trust nginx reverse proxy
 
+// --- Core Middleware ---
+app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
+app.use(helmet()); // Apply security headers
+app.set("trust proxy", true); // Trust reverse proxy (Nginx)
+
+// --- Body Parsing ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(helmet());
 
-// Request logging: minimal to console, full to file
-app.use(...[requestFileLogger, requestConsoleLogger, addRequestId, captureResponseBody]);
+// --- Logging Middleware ---
+app.use(requestLogger); // This single middleware handles all request logging to console and/or file
+app.use(addRequestId); // This helper middleware makes req.id available in your route handlers
 
-// Main API router
-const mainRouter = Router();
-mainRouter.use("/health", healthRouter);
-mainRouter.use("/users", userRouter);
-mainRouter.use("/", openAPIRouter);
-mainRouter.all("/*splish", (req, res) => res.status(404).send("404 - Page Not Found"));
+// --- API Routes ---
+const apiRouter = Router();
+apiRouter.use("/health", healthRouter);
+apiRouter.use("/users", userRouter);
+apiRouter.use("/", openAPIRouter);
 
-app.use(env.BASE_PATH, mainRouter);
+app.use(env.BASE_PATH, apiRouter);
 
-// Serve frontend static files in production
-if (env.NODE_ENV === "production") {
-  const distPath = path.resolve(process.cwd(), env.FRONTEND_DIR!);
-  app.use(express.static(distPath));
-  app.get("/*splash", (req, res) => res.sendFile(path.join(distPath, "index.html")));
+// --- Production Static File Serving ---
+if (env.isProd) {
+    const staticFilesPath = path.resolve(process.cwd(), env.FRONTEND_DIR!);
+    app.use(express.static(staticFilesPath));
+
+    // SPA Catch-All: Redirect all non-API requests to the React app
+    app.get("/*splish", (_req, res) => {
+        res.sendFile(path.join(staticFilesPath, "index.html"));
+    });
 }
 
-// must be put after all middlewares / routers
+// --- Final Error Handler ---
+// This must be the LAST middleware registered.
 app.use(errorHandler());
 
-export { app };
+const server = app.listen(env.PORT, () => { // Assign app.listen to the server constant
+    logger.info(`Server is running on port ${env.PORT}`);
+    logger.info(`(${env.NODE_ENV}) Base Path: ${env.BASE_PATH}`);
+});
+
+export { app, server };

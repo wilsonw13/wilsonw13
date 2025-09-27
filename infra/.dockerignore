@@ -15,10 +15,8 @@ build
 .svelte-kit
 
 # Local environment variables
-.env
-.env.*
-!/.env.production
-!/.env.development
+.env.local
+.env.*.local
 
 # VS Code settings
 .vscode

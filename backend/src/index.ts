@@ -1,26 +1,25 @@
-import { env } from "@/common/utils/envConfig";
-import { app } from "@/server";
-import { multiLogger } from "@/common/middleware/requestLogger";
+import { logger } from "@/common/middleware/requestLogger";
+import { server } from "@/server";
 
-const server = app.listen(env.PORT, () => {
-  const { NODE_ENV, HOST, PORT, BASE_PATH } = env;
-  if (NODE_ENV === "production") {
-    multiLogger.info(`(production) Ensure you have nginx reverse proxying configured.`);
-    multiLogger.info(`(production) Server listening on ${HOST}`);
-  } else {
-    multiLogger.info(`(${NODE_ENV}) Server listening on ${HOST}:${PORT}`);
-  }
-  multiLogger.info(`(${NODE_ENV}) Base Path: ${BASE_PATH}`);
-});
+const signals = ["SIGINT", "SIGTERM", "SIGQUIT"];
 
-const onCloseSignal = () => {
-  multiLogger.info("sigint received, shutting down");
-  server.close(() => {
-    multiLogger.info("server closed");
-    process.exit();
+function gracefulShutdown(signal: string) {
+  process.on(signal, async () => {
+    logger.info(`Received signal: ${signal}, shutting down...`);
+
+    server.close(() => {
+      logger.info("Server has been closed gracefully.");
+      process.exit(0);
+    });
+
+    // Force shutdown after a timeout
+    setTimeout(() => {
+      logger.warn("Forcing shutdown after 10s timeout.");
+      process.exit(1);
+    }, 10000).unref();
   });
-  setTimeout(() => process.exit(1), 10000).unref();
-};
+}
 
-process.on("SIGINT", onCloseSignal);
-process.on("SIGTERM", onCloseSignal);
+for (const signal of signals) {
+  gracefulShutdown(signal);
+}
