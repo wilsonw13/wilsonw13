@@ -1,4 +1,9 @@
+packages:
+  - frontend
+  - backend
+
 onlyBuiltDependencies:
+  - '@scarf/scarf'
   - '@tailwindcss/oxide'
   - esbuild
   - unrs-resolver

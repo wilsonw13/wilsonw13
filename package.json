@@ -1,0 +1,23 @@
+{
+  "name": "portfolio",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/eslint-config-prettier": "^6.11.3",
+    "@typescript-eslint/eslint-plugin": "^7.13.0",
+    "@typescript-eslint/parser": "^7.13.0",
+    "eslint": "9.x",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-react-refresh": "^0.4.22",
+    "globals": "^15.6.0",
+    "prettier": "3.x",
+    "typescript": "5.x"
+  }
+}
