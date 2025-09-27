@@ -3,9 +3,9 @@ import fs from "fs";
 import { z } from "zod";
 import { NODE_ENV_VALUES } from "@/types/global.types";
 
-const isDev = process.env.NODE_ENV === "development";
 const isProd = process.env.NODE_ENV === "production";
 const isTest = process.env.NODE_ENV === "test";
+const isDev = !process.env.NODE_ENV || process.env.NODE_ENV === "development";
 
 const envSchema = z.object({
 	NODE_ENV: z.enum(NODE_ENV_VALUES).default("development"),
