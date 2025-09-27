@@ -1,4 +1,3 @@
-
 import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 import { userRegistry } from "@/types/user.types";
 import { env } from "@/common/utils/envConfig";

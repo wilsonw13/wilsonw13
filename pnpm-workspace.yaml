@@ -3,7 +3,7 @@ packages:
   - backend
 
 onlyBuiltDependencies:
-  - '@scarf/scarf'
-  - '@tailwindcss/oxide'
+  - "@scarf/scarf"
+  - "@tailwindcss/oxide"
   - esbuild
   - unrs-resolver

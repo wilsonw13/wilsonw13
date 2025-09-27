@@ -4,9 +4,7 @@
     /* Base Options */
     "target": "ES2022",
     "module": "ESNext",
-    "lib": [
-      "ES2022"
-    ],
+    "lib": ["ES2022"],
     "skipLibCheck": true,
     /* Bundler & Module Resolution */
     "moduleResolution": "bundler",

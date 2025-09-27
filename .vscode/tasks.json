@@ -29,10 +29,7 @@
     },
     {
       "label": "Start All Dev Servers",
-      "dependsOn": [
-        "Backend Dev",
-        "Frontend Dev"
-      ],
+      "dependsOn": ["Backend Dev", "Frontend Dev"],
       "dependsOrder": "parallel",
       "problemMatcher": [],
       "presentation": {

@@ -50,18 +50,11 @@ const Home = () => {
             </div>
           ) : (
             <code
-              className={`block whitespace-pre text-left font-mono text-base rounded bg-gray-100 p-4 ${error
-                ? "text-red-600"
-                : data
-                  ? "text-green-700"
-                  : "text-gray-400"
-                }`}
+              className={`block whitespace-pre text-left font-mono text-base rounded bg-gray-100 p-4 ${
+                error ? "text-red-600" : data ? "text-green-700" : "text-gray-400"
+              }`}
             >
-              {error
-                ? `Error: ${error}`
-                : data
-                  ? JSON.stringify(data, null, 2)
-                  : "Send the network request"}
+              {error ? `Error: ${error}` : data ? JSON.stringify(data, null, 2) : "Send the network request"}
             </code>
           )}
         </div>

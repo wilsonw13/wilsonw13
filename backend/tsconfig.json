@@ -1,23 +1,14 @@
 {
-	"extends": "../tsconfig.base.json", // Inherit all common settings
-	"compilerOptions": {
-		"baseUrl": "./src", // Define alias base for this specific package
-		"paths": {
-			"@/*": [
-				"*"
-			]
-		},
-		// Add specific libraries for Node.js environment, explicitly excluding "DOM"
-		"lib": [
-			"ESNext"
-		],
-		"noEmit": true // Let tsup handle all file output, tsc is for type-checking only
-	},
-	"include": [
-		"src"
-	], // Source files for this package
-	"exclude": [
-		"node_modules",
-		"dist"
-	]
+  "extends": "../tsconfig.base.json", // Inherit all common settings
+  "compilerOptions": {
+    "baseUrl": "./src", // Define alias base for this specific package
+    "paths": {
+      "@/*": ["*"]
+    },
+    // Add specific libraries for Node.js environment, explicitly excluding "DOM"
+    "lib": ["ESNext"],
+    "noEmit": true // Let tsup handle all file output, tsc is for type-checking only
+  },
+  "include": ["src"], // Source files for this package
+  "exclude": ["node_modules", "dist"]
 }

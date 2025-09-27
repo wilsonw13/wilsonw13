@@ -11,7 +11,7 @@ import {
   getUserById,
   createUser,
   updateUser,
-  deleteUser as repoDeleteUser
+  deleteUser as repoDeleteUser,
 } from "@/repository/user.repository";
 
 export const requestSchemas = {
@@ -32,11 +32,15 @@ export const requestSchemas = {
   // Input Validation for 'GET users/:id' endpoint
   get: z.object({
     params: z.object({ id: commonValidations.id }),
-  })
-}
+  }),
+};
 
 // Add a new user
-export async function addUser(data: { name: string; email: string; age: number }): Promise<ServiceResponse<User | null>> {
+export async function addUser(data: {
+  name: string;
+  email: string;
+  age: number;
+}): Promise<ServiceResponse<User | null>> {
   try {
     const newUser = await createUser(data);
     return ServiceResponse.success<User>("User created", newUser, StatusCodes.CREATED);

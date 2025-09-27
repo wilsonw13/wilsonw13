@@ -4,8 +4,5 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "module": "ESNext" // Specific to the tooling environment
   },
-  "include": [
-    "vite.config.ts",
-    "../types/global.d.ts"
-  ]
+  "include": ["vite.config.ts", "../types/global.d.ts"]
 }

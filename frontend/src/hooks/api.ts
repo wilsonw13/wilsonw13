@@ -25,7 +25,7 @@ function useApiResourceState<T = any>(): ApiResourceState<T> {
       const result = await apiFetch<T>(path, options);
       setData(result as T);
     } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
+      const errorMessage = e instanceof Error ? e.message : "An unknown error occurred";
       setError(errorMessage);
       setData(null);
     } finally {
@@ -56,7 +56,7 @@ interface AutoApiResourceReturn<T> {
 export function useAutoApiResource<T = any>(
   path: string | null,
   options?: RequestInit,
-  delayMs: number = MINIMUM_DEBOUNCE_DELAY_MS
+  delayMs: number = MINIMUM_DEBOUNCE_DELAY_MS,
 ): AutoApiResourceReturn<T> {
   const { data, loading, error, fetchResource } = useApiResourceState<T>();
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -106,15 +106,11 @@ interface ManualApiResourceReturn<T> {
  * @param options - Default fetch options.
  * @returns API resource state and manual fetch function.
  */
-export function useManualApiResource<T = any>(
-  path: string,
-  options?: RequestInit
-): ManualApiResourceReturn<T> {
+export function useManualApiResource<T = any>(path: string, options?: RequestInit): ManualApiResourceReturn<T> {
   const { data, loading, error, fetchResource } = useApiResourceState<T>();
 
   const fetchNow = useCallback(
-    (newPath: string = path, newOptions: RequestInit = options || {}) =>
-      fetchResource(newPath, newOptions),
+    (newPath: string = path, newOptions: RequestInit = options || {}) => fetchResource(newPath, newOptions),
     [fetchResource, path, options],
   );
 

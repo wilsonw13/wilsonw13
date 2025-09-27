@@ -19,10 +19,10 @@ export const openAPIRequestBody = (schema: ZodTypeAny) => ({
   body: {
     content: {
       "application/json": {
-        schema
-      }
-    }
-  }
+        schema,
+      },
+    },
+  },
 });
 
 // Use if you want multiple responses for a single endpoint
