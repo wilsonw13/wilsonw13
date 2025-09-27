@@ -4,9 +4,11 @@
   "version": "1",
   "main": "index.ts",
   "scripts": {
-    "build": "tsup",
     "dev": "node --import=tsx --watch src/index.ts",
-    "start": "cross-env NODE_ENV=production node dist/index.js"
+    "build": "tsup",
+    "start": "cross-env NODE_ENV=production node dist/index.js",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "7.3.4",

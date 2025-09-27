@@ -1,10 +1,15 @@
 {
   "recommendations": [
+    "PKief.material-icon-theme",
     "naumovs.color-highlight",
     "dsznajder.es7-react-js-snippets",
     "ecmel.vscode-html-css",
     "kisstkondoros.vscode-gutter-preview",
     "esbenp.prettier-vscode",
-    "bradlc.vscode-tailwindcss"
+    "bradlc.vscode-tailwindcss",
+    "dbaeumer.vscode-eslint",
+    "mikestead.dotenv",
+    "mongodb.mongodb-vscode",
+    "Gruntfuggly.todo-tree"
   ]
 }

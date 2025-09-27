@@ -1,48 +1,25 @@
+// .vscode/tasks.json
 {
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Backend Dev",
-      "type": "shell",
-      "command": "pnpm dev",
-      "options": {
-        "cwd": "${workspaceRoot}/backend"
-      },
-      "problemMatcher": [],
-      "isBackground": true,
-      "presentation": {
-        "group": "dev-servers"
-      }
-    },
-    {
-      "label": "Frontend Dev",
-      "type": "shell",
-      "command": "pnpm dev",
-      "options": {
-        "cwd": "${workspaceRoot}/frontend"
-      },
-      "problemMatcher": [],
-      "isBackground": true,
-      "presentation": {
-        "group": "dev-servers"
-      }
-    },
-    {
       "label": "Start All Dev Servers",
-      "dependsOn": ["Backend Dev", "Frontend Dev"],
-      "dependsOrder": "parallel",
+      "type": "shell",
+      "command": "pnpm dev",
+      "isBackground": true,
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
+        "clear": true,
         "group": "dev-servers"
       },
       "runOptions": {
-        "runOn": "folderOpen"
+        "runOn": "folderOpen" // Automatically runs when you open the project
       },
       "group": {
         "kind": "build",
-        "isDefault": true
+        "isDefault": true // Makes this the default task for Ctrl + Shift + B
       }
     }
   ]

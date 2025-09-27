@@ -1,32 +1,25 @@
 {
-  "[javascript]": {
-    "editor.insertSpaces": true,
-    "editor.tabSize": 2
+  // --- Formatting & Linting ---
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
   },
+  // --- File-Specific Settings ---
   "[typescript]": {
-    "editor.insertSpaces": true,
-    "editor.tabSize": 2
-  },
-  "[javascriptreact]": {
-    "editor.insertSpaces": true,
-    "editor.tabSize": 2
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[typescriptreact]": {
-    "editor.insertSpaces": true,
-    "editor.tabSize": 2
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "[json]": {
-    "editor.insertSpaces": true,
-    "editor.tabSize": 2
-  },
-  "[jsonc]": {
-    "editor.insertSpaces": true,
-    "editor.tabSize": 2
-  },
-  "[markdown]": {
-    "editor.insertSpaces": true,
-    "editor.tabSize": 2
-  },
+  // --- Project Consistency ---
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "eslint.validate": [
+    "javascript",
+    "typescript",
+    "javascriptreact",
+    "typescriptreact"
+  ],
   "material-icon-theme.files.associations": {
     "*.service.ts": "typescript",
     "*.router.ts": "routing"
