@@ -3,13 +3,12 @@ import express, { type Express } from "express";
 import helmet from "helmet";
 import path from "path";
 
-
 import { healthRouter } from "@/router/health.router";
 import { userRouter } from "@/router/user.router";
 import errorHandler from "@/common/middleware/errorHandler";
 import { addRequestId, captureResponseBody, requestFileLogger, requestConsoleLogger } from "@/common/middleware/requestLogger";
 import { env } from "@/common/utils/envConfig";
-import { openAPIRouter } from "./router/openAPI.router";
+import { openAPIRouter } from "@/router/openAPI.router";
 import { Router } from "express";
 
 const app: Express = express();

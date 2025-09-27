@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 import { extendZodWithOpenApi, OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import { commonValidations } from "@/common/utils/commonValidation";
