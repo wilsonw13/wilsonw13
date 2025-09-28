@@ -14,17 +14,10 @@
   },
   // --- Project Consistency ---
   "typescript.tsdk": "node_modules/typescript/lib",
-  "eslint.validate": [
-    "javascript",
-    "typescript",
-    "javascriptreact",
-    "typescriptreact"
-  ],
+  "eslint.validate": ["javascript", "typescript", "javascriptreact", "typescriptreact"],
   "material-icon-theme.files.associations": {
     "*.service.ts": "typescript",
     "*.router.ts": "routing"
   },
-  "todo-tree.filtering.excludeGlobs": [
-    "**/node_modules/*/**"
-  ]
+  "todo-tree.filtering.excludeGlobs": ["**/node_modules/*/**"]
 }

@@ -48,7 +48,7 @@ function AccordionItem({ route, isOpen, onToggle }: AccordionItemProps) {
 }
 
 function ApiAccordion({ route }: { route: RouteConfig }) {
-  const { data, loading, error, fetchNow } = useManualApiResource<any>("");
+  const { data, loading, error, fetchNow } = useManualApiResource<unknown>("");
   const [fieldValue, setFieldValue] = useState<string>(route.textarea ? route.default || "" : "");
   const [showLoading, setShowLoading] = useState<boolean>(false);
 

@@ -104,7 +104,7 @@ export async function pkceChallengeFromVerifier(verifier: string): Promise<strin
  * @param options - Fetch options (method, headers, body, etc).
  * @returns A promise that resolves to the parsed JSON response body.
  */
-export async function apiFetch<T = any>(path: string, options: RequestInit = {}): Promise<T | Response> {
+export async function apiFetch<T = unknown>(path: string, options: RequestInit = {}): Promise<T | Response> {
   const token = getCookie("access_token");
 
   // Define default headers

@@ -1,7 +1,7 @@
 import { baseConfig } from "../eslint.config.js";
 import reactPlugin from "eslint-plugin-react";
 import hooksPlugin from "eslint-plugin-react-hooks";
-// @ts-ignore
+// @ts-expect-error: eslint-plugin-jsx-a11y has no default export in types, but works at runtime
 import jsxA11yPlugin from "eslint-plugin-jsx-a11y";
 import importPlugin from "eslint-plugin-import";
 import reactRefreshPlugin from "eslint-plugin-react-refresh";

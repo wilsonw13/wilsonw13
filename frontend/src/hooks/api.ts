@@ -12,7 +12,7 @@ interface ApiResourceState<T> {
  * Internal helper to manage API resource state and fetch logic.
  * @returns API resource state and fetch function.
  */
-function useApiResourceState<T = any>(): ApiResourceState<T> {
+function useApiResourceState<T = unknown>(): ApiResourceState<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +53,7 @@ interface AutoApiResourceReturn<T> {
  * @param delayMs - Debounce delay in milliseconds. Use 0 to disable debouncing.
  * @returns API resource state and manual fetch function.
  */
-export function useAutoApiResource<T = any>(
+export function useAutoApiResource<T = unknown>(
   path: string | null,
   options?: RequestInit,
   delayMs: number = MINIMUM_DEBOUNCE_DELAY_MS,
@@ -106,7 +106,7 @@ interface ManualApiResourceReturn<T> {
  * @param options - Default fetch options.
  * @returns API resource state and manual fetch function.
  */
-export function useManualApiResource<T = any>(path: string, options?: RequestInit): ManualApiResourceReturn<T> {
+export function useManualApiResource<T = unknown>(path: string, options?: RequestInit): ManualApiResourceReturn<T> {
   const { data, loading, error, fetchResource } = useApiResourceState<T>();
 
   const fetchNow = useCallback(

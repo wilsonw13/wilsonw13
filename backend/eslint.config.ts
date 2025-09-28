@@ -1,5 +1,5 @@
 import { baseConfig } from "../eslint.config.js";
-// @ts-ignore
+// @ts-expect-error: eslint-plugin-node has no default export in types, but works at runtime
 import nodePlugin from "eslint-plugin-node";
 
 export default [

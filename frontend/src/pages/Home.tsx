@@ -3,7 +3,7 @@ import { useManualApiResource } from "@/hooks/api";
 import viteLogo from "/vite.svg";
 
 const Home = () => {
-  const { data, loading, error, fetchNow } = useManualApiResource<any>("/health");
+  const { data, loading, error, fetchNow } = useManualApiResource<unknown>("/health");
   const [showLoading, setShowLoading] = useState<boolean>(false);
 
   // Delay loading indicator to prevent flicker
