@@ -4,6 +4,6 @@ export interface IUser {
   name: string;
   email: string;
   age: number;
-  createdAt: string; // ISO string from backend
-  updatedAt: string; // ISO string from backend
+  createdAt: string;
+  updatedAt: string;
 }
