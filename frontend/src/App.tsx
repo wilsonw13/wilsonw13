@@ -1,5 +1,5 @@
 import { useRoutes } from "react-router-dom";
-import routes from "@/Routes";
+import routes from "@/routes";
 import Navbar from "@/components/Navbar";
 
 function App() {
