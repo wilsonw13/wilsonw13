@@ -1,0 +1,35 @@
+name: Deploy to Homelab
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - "frontend/**"
+
+# Ensures that only one deployment runs at a time for the main branch.
+# If a new commit is pushed, it will cancel any in-progress deployment.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-homelab:
+    name: Deploy to Homelab Server
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: docker build . -f ./infra/Dockerfile -t portfolio
+
+      - name: Stop and Remove Existing Container
+        run: |
+          docker stop portfolio || true
+          docker rm portfolio || true
+
+      - name: Run New Container
+        run: docker run -d -p 3000:3000 --name portfolio --restart unless-stopped portfolio
