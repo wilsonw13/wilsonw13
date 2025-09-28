@@ -7,6 +7,8 @@ on:
     paths:
       - "backend/**"
       - "frontend/**"
+      - "infra/Dockerfile"
+      - "package.json"
 
   workflow_dispatch:
 

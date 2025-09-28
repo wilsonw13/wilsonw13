@@ -4,21 +4,13 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# ---- Dependencies Stage ----
-FROM base AS dependencies
-WORKDIR /app
-COPY pnpm-workspace.yaml ./
-COPY package.json pnpm-lock.yaml ./
-COPY backend/package.json ./backend/
-COPY frontend/package.json ./frontend/
-RUN pnpm install --frozen-lockfile
-
 # ---- Builder Stage ----
+# This stage now copies the source code first, then installs all dependencies
+# This is a more robust pattern for pnpm workspaces in Docker.
 FROM base AS builder
 WORKDIR /app
-COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
-COPY frontend/.env* ./frontend/
+RUN pnpm install --frozen-lockfile
 RUN pnpm build
 
 # ---- Production Stage ----
@@ -27,8 +19,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Prune node_modules to production-only dependencies for the backend
-COPY --from=dependencies /app/node_modules ./node_modules
-COPY backend/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/backend/package.json ./
 RUN pnpm prune --prod
 
 # Copy the built backend and frontend assets from the builder stage
