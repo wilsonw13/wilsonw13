@@ -9,7 +9,13 @@ import { healthRouter } from "@/router/health.router";
 import { userRouter } from "@/router/user.router";
 import { openAPIRouter } from "@/router/openAPI.router";
 import errorHandler from "@/common/middleware/errorHandler";
-import { logger, requestLogger, addRequestId } from "@/common/middleware/requestLogger";
+import {
+  logger,
+  requestFileLogger,
+  requestConsoleLogger,
+  captureResponseBody,
+  addRequestId,
+} from "@/common/middleware/requestLogger";
 import { env } from "@/common/utils/envConfig";
 
 const app: Express = express();
@@ -24,8 +30,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // --- Logging Middleware ---
-app.use(requestLogger); // This single middleware handles all request logging to console and/or file
-app.use(addRequestId); // This helper middleware makes req.id available in your route handlers
+app.use([captureResponseBody, requestFileLogger, requestConsoleLogger, addRequestId]);
 
 // --- API Routes ---
 const apiRouter = Router();
@@ -51,7 +56,6 @@ if (env.isProd) {
 app.use(errorHandler());
 
 const server = app.listen(env.PORT, () => {
-  // Assign app.listen to the server constant
   logger.info(`Server is running on port ${env.PORT}`);
   logger.info(`(${env.NODE_ENV}) Base Path: ${env.BASE_PATH}`);
 });

@@ -34,6 +34,7 @@ export const baseConfig = [
     rules: {
       ...tsPlugin.configs["recommended"].rules,
       "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
     },
   },
   prettierConfig,

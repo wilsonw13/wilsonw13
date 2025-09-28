@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import fs from "fs";
 import { z } from "zod";
-import { LOG_LEVEL_VALUES, NODE_ENV_VALUES } from "@/types/global.types";
+import { NODE_ENV_VALUES } from "@/types/global.types";
 
 const isProd = process.env.NODE_ENV === "production";
 const isTest = process.env.NODE_ENV === "test";
@@ -15,7 +15,6 @@ const envSchema = z.object({
   BASE_PATH: z.string(),
   FRONTEND_DIR: isProd ? z.string() : z.string().optional(),
 
-  LOG_LEVEL: z.enum(LOG_LEVEL_VALUES).default("info"),
   LOG_DIR: z.string().default("logs"),
   FILE_LOGGING_ENABLED: z.coerce.boolean().default(true),
 
