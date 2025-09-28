@@ -1,12 +1,19 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
+    /* Build Info */
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    /* Module and JSX Overrides (For Bundler/React) */
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "jsx": "react-jsx",
+    "noEmit": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    /* Path Aliases */
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["src/*"]
     }
   },
-  "include": ["src", "../types/global.d.ts"]
+  "include": ["src/**/*", "vite-env.d.ts", "../types/**/*"]
 }

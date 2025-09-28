@@ -12,8 +12,6 @@ on:
 
   workflow_dispatch:
 
-# Ensures that only one deployment runs at a time for the main branch.
-# If a new commit is pushed, it will cancel any in-progress deployment.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

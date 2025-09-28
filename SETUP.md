@@ -9,8 +9,8 @@ This document provides all the necessary instructions for setting up the develop
   - [Tech Stack](#tech-stack)
   - [Prerequisites](#prerequisites)
   - [Development Setup](#development-setup)
-      - [1. Clone \& Install Dependencies](#1-clone--install-dependencies)
-      - [2. VS Code Configuration](#2-vs-code-configuration)
+    - [1. Clone \& Install Dependencies](#1-clone--install-dependencies)
+    - [2. VS Code Configuration](#2-vs-code-configuration)
   - [Available Scripts](#available-scripts)
   - [Running for Development](#running-for-development)
   - [Production Deployment with Docker](#production-deployment-with-docker)
@@ -126,18 +126,17 @@ This guide outlines how to build and run the application as a Docker container.
 2.  **Build and Run the Docker Container**
 
     From your project's root directory on the server, run the following commands.
+    - First, build the Docker image:
 
-      * First, build the Docker image:
+      ```bash
+      docker build . -f ./infra/Dockerfile -t <image-name>
+      ```
 
-        ```bash
-        docker build . -f ./infra/Dockerfile -t <image-name>
-        ```
+    - Then, run the container, securely injecting your secrets file using the `--env-file` flag:
 
-      * Then, run the container, securely injecting your secrets file using the `--env-file` flag:
-
-        ```bash
-        docker run -d -p 3000:3000 --name <container-name> --restart unless-stopped --env-file /opt/secrets/prod.env <image-name>
-        ```
+      ```bash
+      docker run -d -p 3000:3000 --name <container-name> --restart unless-stopped --env-file /opt/secrets/prod.env <image-name>
+      ```
 
 Your application will now start, load the base configuration from the files inside the image, and then override them with the secrets you provided at runtime. This is a secure and robust pattern that perfectly matches your code.
 

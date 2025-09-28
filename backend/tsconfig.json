@@ -1,14 +1,21 @@
 {
-  "extends": "../tsconfig.base.json", // Inherit all common settings
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "./src", // Define alias base for this specific package
+    /* Modules and Transforms */
+    "module": "ESNext",
+    "target": "es2020",
+    "moduleResolution": "Bundler",
+    "verbatimModuleSyntax": true,
+    /* Global Libraries */
+    "lib": ["esnext"],
+    /* Path Aliases */
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["src/*"]
     },
-    // Add specific libraries for Node.js environment, explicitly excluding "DOM"
-    "lib": ["ESNext"],
-    "noEmit": true // Let tsup handle all file output, tsc is for type-checking only
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "noEmit": false
   },
-  "include": ["src"], // Source files for this package
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*"]
 }

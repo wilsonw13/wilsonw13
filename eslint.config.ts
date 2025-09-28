@@ -4,7 +4,6 @@ import tsPlugin from "@typescript-eslint/eslint-plugin";
 import prettierConfig from "eslint-config-prettier";
 
 export const baseConfig = [
-  // Global ignores for all configs
   {
     ignores: [
       "**/node_modules/",
@@ -16,7 +15,6 @@ export const baseConfig = [
       "**/*.d.ts",
     ],
   },
-  // Base config for all files
   {
     languageOptions: {
       globals: {
@@ -25,7 +23,6 @@ export const baseConfig = [
       },
     },
   },
-  // TypeScript specific configuration
   {
     files: ["**/*.{ts,tsx}"],
     plugins: {
@@ -33,9 +30,6 @@ export const baseConfig = [
     },
     languageOptions: {
       parser: tsParser,
-      parserOptions: {
-        project: "./tsconfig.json",
-      },
     },
     rules: {
       ...tsPlugin.configs["recommended"].rules,

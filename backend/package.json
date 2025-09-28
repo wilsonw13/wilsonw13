@@ -3,6 +3,7 @@
   "private": true,
   "version": "1",
   "main": "index.ts",
+  "type": "module",
   "scripts": {
     "dev": "node --import=tsx --watch src/index.ts",
     "build": "tsup",
@@ -49,9 +50,5 @@
     "dts": true,
     "splitting": false,
     "skipNodeModulesBundle": true
-  },
-  "packageManager": "pnpm@10.15.1",
-  "engines": {
-    "node": "22.x"
   }
 }

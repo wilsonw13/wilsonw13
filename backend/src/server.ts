@@ -37,22 +37,23 @@ app.use(env.BASE_PATH, apiRouter);
 
 // --- Production Static File Serving ---
 if (env.isProd) {
-    const staticFilesPath = path.resolve(process.cwd(), env.FRONTEND_DIR!);
-    app.use(express.static(staticFilesPath));
+  const staticFilesPath = path.resolve(process.cwd(), env.FRONTEND_DIR!);
+  app.use(express.static(staticFilesPath));
 
-    // SPA Catch-All: Redirect all non-API requests to the React app
-    app.get("/*splish", (_req, res) => {
-        res.sendFile(path.join(staticFilesPath, "index.html"));
-    });
+  // SPA Catch-All: Redirect all non-API requests to the React app
+  app.get("/*splish", (_req, res) => {
+    res.sendFile(path.join(staticFilesPath, "index.html"));
+  });
 }
 
 // --- Final Error Handler ---
 // This must be the LAST middleware registered.
 app.use(errorHandler());
 
-const server = app.listen(env.PORT, () => { // Assign app.listen to the server constant
-    logger.info(`Server is running on port ${env.PORT}`);
-    logger.info(`(${env.NODE_ENV}) Base Path: ${env.BASE_PATH}`);
+const server = app.listen(env.PORT, () => {
+  // Assign app.listen to the server constant
+  logger.info(`Server is running on port ${env.PORT}`);
+  logger.info(`(${env.NODE_ENV}) Base Path: ${env.BASE_PATH}`);
 });
 
 export { app, server };

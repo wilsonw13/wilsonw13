@@ -1,17 +1,12 @@
-// ./tsconfig.base.json
 {
   "compilerOptions": {
     /* Base Options */
     "target": "ES2022",
-    "module": "ESNext",
     "lib": ["ES2022"],
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    /* Bundler & Module Resolution */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "moduleDetection": "force",
-    "noEmit": true,
     "isolatedModules": true,
     /* Strictness & Linting */
     "strict": true,
@@ -19,5 +14,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
-  }
+  },
+  "include": ["types/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

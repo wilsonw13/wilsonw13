@@ -46,7 +46,11 @@ export const requestSchemas = {
 };
 
 // Add a new user
-export async function addUser(data: { name: string; email: string; age: number }): Promise<ServiceResponse<User | null>> {
+export async function addUser(data: {
+  name: string;
+  email: string;
+  age: number;
+}): Promise<ServiceResponse<User | null>> {
   try {
     const newUser = await createUser(data);
     return ServiceResponse.success<User>("User created", newUser, StatusCodes.CREATED);
@@ -99,7 +103,11 @@ export async function findAll(): Promise<ServiceResponse<User[] | null>> {
   } catch (ex) {
     const errorMessage = `Error finding all users: ${(ex as Error).message}`;
     logger.error({ err: ex as Error }, errorMessage);
-    return ServiceResponse.failure("An error occurred while retrieving users.", null, StatusCodes.INTERNAL_SERVER_ERROR);
+    return ServiceResponse.failure(
+      "An error occurred while retrieving users.",
+      null,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+    );
   }
 }
 

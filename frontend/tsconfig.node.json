@@ -1,8 +1,16 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
+    /* Build Info */
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
-    "module": "ESNext" // Specific to the tooling environment
+    /* Module Overrides (For Node scripts: vite.config.ts) */
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "./*": ["./*"]
+    }
   },
-  "include": ["vite.config.ts", "../types/global.d.ts"]
+  "include": ["vite.config.ts", "src/plugins/**/*.ts"]
 }

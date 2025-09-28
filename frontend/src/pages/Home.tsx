@@ -34,7 +34,6 @@ const Home = () => {
       </div>
       <h1 className="text-3xl font-bold mb-4 text-center">Vite + React</h1>
       <div className="bg-white rounded-lg shadow p-6 w-full max-w-lg flex flex-col gap-4 mx-auto">
-        <h3 className="text-black text-center">testing github actions</h3>
         <div className="flex justify-center">
           <button
             onClick={handleHealthCheck}
