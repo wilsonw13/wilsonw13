@@ -8,6 +8,8 @@ on:
       - "backend/**"
       - "frontend/**"
       - "infra/Dockerfile"
+      - "infra/docker-compose.yaml"
+      - "infra/.dockerignore"
       - "package.json"
 
   workflow_dispatch:
@@ -25,13 +27,8 @@ jobs:
       - name: Checkout main branch
         uses: actions/checkout@v4
 
-      - name: Build Docker Image
-        run: docker build . -f ./infra/Dockerfile -t portfolio
+      - name: Stop and Remove Existing Containers
+        run: docker-compose -f infra/docker-compose.yaml down
 
-      - name: Stop and Remove Existing Container
-        run: |
-          docker stop portfolio || true
-          docker rm portfolio || true
-
-      - name: Run New Container
-        run: docker run -d -p 3000:3000 --name portfolio --restart unless-stopped portfolio
+      - name: Build and Start Containers
+        run: docker-compose -f infra/docker-compose.yaml up -d --build

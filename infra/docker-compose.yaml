@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  portfolio:
+    build:
+      context: ..
+      dockerfile: ./infra/Dockerfile
+    restart: unless-stopped
+    container_name: portfolio
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./logs:/app/logs
