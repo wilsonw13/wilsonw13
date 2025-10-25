@@ -7,7 +7,6 @@ on:
     paths:
       - "backend/**"
       - "frontend/**"
-      - ".github/workflows/deploy.yaml"
       - "infra/Dockerfile"
       - "infra/compose.yaml"
       - "infra/.dockerignore"
@@ -20,7 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMAGE_NAME: willcontact-portfolio
+  # Update this to match the image name in your docker-compose.yaml
+  IMAGE_NAME: infra-portfolio
   MAX_IMAGES_TO_KEEP: 5
 
 jobs:
@@ -39,16 +39,22 @@ jobs:
       - name: Tag Current Running Image as Backup
         id: backup
         run: |
-          # Get current running image ID
-          CURRENT_IMAGE=$(docker compose -f infra/compose.yaml images -q | head -n 1)
+          # Check if containers are running first
+          if docker compose -f infra/compose.yaml ps -q | grep -q .; then
+            # Get current image name from compose
+            IMAGE_NAME_FROM_COMPOSE=$(docker compose -f infra/compose.yaml config | grep "image:" | head -n 1 | awk '{print $2}')
 
-          if [ -n "$CURRENT_IMAGE" ]; then
-            BACKUP_TAG="${IMAGE_NAME}:backup-$(date +%Y%m%d-%H%M%S)"
-            docker tag $CURRENT_IMAGE $BACKUP_TAG
-            echo "backup_tag=$BACKUP_TAG" >> $GITHUB_OUTPUT
-            echo "Created backup tag: $BACKUP_TAG"
+            if [ -n "$IMAGE_NAME_FROM_COMPOSE" ]; then
+              BACKUP_TAG="${IMAGE_NAME}:backup-$(date +%Y%m%d-%H%M%S)"
+              docker tag $IMAGE_NAME_FROM_COMPOSE $BACKUP_TAG
+              echo "backup_tag=$BACKUP_TAG" >> $GITHUB_OUTPUT
+              echo "Created backup tag: $BACKUP_TAG"
+            else
+              echo "Could not determine current image"
+              echo "backup_tag=" >> $GITHUB_OUTPUT
+            fi
           else
-            echo "No running image to backup"
+            echo "No running containers to backup"
             echo "backup_tag=" >> $GITHUB_OUTPUT
           fi
         continue-on-error: true
@@ -65,10 +71,17 @@ jobs:
           echo "Building Docker images with tag: ${{ steps.timestamp.outputs.timestamp }}"
           docker compose -f infra/compose.yaml build
 
+          # Get the built image name from docker compose config
+          SERVICE_NAME=$(docker compose -f infra/compose.yaml config --services | head -n 1)
+          IMAGE_NAME_FROM_COMPOSE=$(docker compose -f infra/compose.yaml config | grep "image:" | head -n 1 | awk '{print $2}')
+
           # Tag the newly built image
-          NEW_IMAGE=$(docker compose -f infra/compose.yaml images -q | head -n 1)
-          docker tag $NEW_IMAGE ${IMAGE_NAME}:${{ steps.timestamp.outputs.timestamp }}
-          echo "new_image_tag=${IMAGE_NAME}:${{ steps.timestamp.outputs.timestamp }}" >> $GITHUB_OUTPUT
+          if [ -n "$IMAGE_NAME_FROM_COMPOSE" ]; then
+            docker tag $IMAGE_NAME_FROM_COMPOSE ${IMAGE_NAME}:${{ steps.timestamp.outputs.timestamp }}
+            echo "new_image_tag=${IMAGE_NAME}:${{ steps.timestamp.outputs.timestamp }}" >> $GITHUB_OUTPUT
+          else
+            echo "Could not determine image name from compose file"
+          fi
 
       - name: Start Containers
         id: deploy
@@ -100,10 +113,13 @@ jobs:
         if: success()
         run: |
           echo "Tagging successful deployment..."
-          NEW_IMAGE=$(docker compose -f infra/compose.yaml images -q | head -n 1)
-          docker tag $NEW_IMAGE ${IMAGE_NAME}:latest-success
-          docker tag $NEW_IMAGE ${IMAGE_NAME}:success-$(date +%Y%m%d-%H%M%S)
-          echo "Tagged as latest-success"
+          IMAGE_NAME_FROM_COMPOSE=$(docker compose -f infra/compose.yaml config | grep "image:" | head -n 1 | awk '{print $2}')
+
+          if [ -n "$IMAGE_NAME_FROM_COMPOSE" ]; then
+            docker tag $IMAGE_NAME_FROM_COMPOSE ${IMAGE_NAME}:latest-success
+            docker tag $IMAGE_NAME_FROM_COMPOSE ${IMAGE_NAME}:success-$(date +%Y%m%d-%H%M%S)
+            echo "Tagged as latest-success"
+          fi
 
       - name: Cleanup Old Images
         if: success()
