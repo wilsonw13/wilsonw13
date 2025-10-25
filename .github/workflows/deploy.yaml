@@ -19,14 +19,19 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Update this to match the image name in your docker-compose.yaml
-  IMAGE_NAME: infra-portfolio
+  COMPOSE_FILE: infra/compose.yaml
+  APP_IMAGE: portfolio
   MAX_IMAGES_TO_KEEP: 5
+  DOMAIN: https://willcontact.me
 
 jobs:
-  deploy-homelab:
-    name: Deploy to Homelab Server
+  pre-deploy:
+    name: Pre-Deploy Backup
     runs-on: self-hosted
+    outputs:
+      backup_tag: ${{ steps.backup.outputs.tag }}
+      has_backup: ${{ steps.backup.outputs.has_backup }}
+      timestamp: ${{ steps.timestamp.outputs.timestamp }}
 
     steps:
       - name: Checkout Code
@@ -39,132 +44,279 @@ jobs:
       - name: Tag Current Running Image as Backup
         id: backup
         run: |
-          # Check if containers are running first
-          if docker compose -f infra/compose.yaml ps -q | grep -q .; then
+          timestamp=$(date +%Y%m%d-%H%M%S)
+
+          # Check if containers are running
+          if docker compose -f ${{ env.COMPOSE_FILE }} ps -q | grep -q .; then
             # Get current image name from compose
-            IMAGE_NAME_FROM_COMPOSE=$(docker compose -f infra/compose.yaml config | grep "image:" | head -n 1 | awk '{print $2}')
+            IMAGE_NAME_FROM_COMPOSE=$(docker compose -f ${{ env.COMPOSE_FILE }} config | grep "image:" | head -n 1 | awk '{print $2}')
 
             if [ -n "$IMAGE_NAME_FROM_COMPOSE" ]; then
-              BACKUP_TAG="${IMAGE_NAME}:backup-$(date +%Y%m%d-%H%M%S)"
-              docker tag $IMAGE_NAME_FROM_COMPOSE $BACKUP_TAG
-              echo "backup_tag=$BACKUP_TAG" >> $GITHUB_OUTPUT
-              echo "Created backup tag: $BACKUP_TAG"
+              backup_tag="backup-$timestamp"
+              docker tag $IMAGE_NAME_FROM_COMPOSE ${{ env.APP_IMAGE }}:$backup_tag
+              echo "tag=$backup_tag" >> $GITHUB_OUTPUT
+              echo "has_backup=true" >> $GITHUB_OUTPUT
+              echo "Created backup tag: ${{ env.APP_IMAGE }}:$backup_tag"
             else
               echo "Could not determine current image"
-              echo "backup_tag=" >> $GITHUB_OUTPUT
+              echo "tag=none" >> $GITHUB_OUTPUT
+              echo "has_backup=false" >> $GITHUB_OUTPUT
             fi
           else
             echo "No running containers to backup"
-            echo "backup_tag=" >> $GITHUB_OUTPUT
+            echo "tag=none" >> $GITHUB_OUTPUT
+            echo "has_backup=false" >> $GITHUB_OUTPUT
           fi
         continue-on-error: true
 
-      - name: Stop Existing Containers
+      - name: Cleanup Old Backups
         run: |
-          echo "Stopping existing containers..."
-          docker compose -f infra/compose.yaml down
-        continue-on-error: true
+          echo "Cleaning up old backup images, keeping last ${{ env.MAX_IMAGES_TO_KEEP }}..."
 
-      - name: Build Docker Images
-        id: build
-        run: |
-          echo "Building Docker images with tag: ${{ steps.timestamp.outputs.timestamp }}"
-          docker compose -f infra/compose.yaml build
-
-          # Get the built image name from docker compose config
-          SERVICE_NAME=$(docker compose -f infra/compose.yaml config --services | head -n 1)
-          IMAGE_NAME_FROM_COMPOSE=$(docker compose -f infra/compose.yaml config | grep "image:" | head -n 1 | awk '{print $2}')
-
-          # Tag the newly built image
-          if [ -n "$IMAGE_NAME_FROM_COMPOSE" ]; then
-            docker tag $IMAGE_NAME_FROM_COMPOSE ${IMAGE_NAME}:${{ steps.timestamp.outputs.timestamp }}
-            echo "new_image_tag=${IMAGE_NAME}:${{ steps.timestamp.outputs.timestamp }}" >> $GITHUB_OUTPUT
-          else
-            echo "Could not determine image name from compose file"
-          fi
-
-      - name: Start Containers
-        id: deploy
-        run: |
-          echo "Starting containers..."
-          docker compose -f infra/compose.yaml up -d
-
-      - name: Show Container Status
-        run: docker compose -f infra/compose.yaml ps
-
-      - name: Wait for Service to Start
-        run: sleep 10
-
-      - name: Health Check
-        id: health_check
-        run: |
-          echo "Performing health check on https://willcontact.me..."
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://willcontact.me)
-
-          if [ "$response" -eq 200 ]; then
-            echo "Health check passed! HTTP status: $response"
-            exit 0
-          else
-            echo "Health check failed! HTTP status: $response"
-            exit 1
-          fi
-
-      - name: Tag Successful Deployment
-        if: success()
-        run: |
-          echo "Tagging successful deployment..."
-          IMAGE_NAME_FROM_COMPOSE=$(docker compose -f infra/compose.yaml config | grep "image:" | head -n 1 | awk '{print $2}')
-
-          if [ -n "$IMAGE_NAME_FROM_COMPOSE" ]; then
-            docker tag $IMAGE_NAME_FROM_COMPOSE ${IMAGE_NAME}:latest-success
-            docker tag $IMAGE_NAME_FROM_COMPOSE ${IMAGE_NAME}:success-$(date +%Y%m%d-%H%M%S)
-            echo "Tagged as latest-success"
-          fi
-
-      - name: Cleanup Old Images
-        if: success()
-        run: |
-          echo "Cleaning up old images, keeping last $MAX_IMAGES_TO_KEEP..."
-
-          # Get all tagged images sorted by creation date, skip the most recent ones
-          docker images ${IMAGE_NAME} --format "{{.ID}}|{{.CreatedAt}}" | \
-            sort -t'|' -k2 -r | \
-            tail -n +$((MAX_IMAGES_TO_KEEP + 1)) | \
-            cut -d'|' -f1 | \
-            xargs -r docker rmi -f || true
+          # Remove old image backups (keep specified amount)
+          docker images --format '{{.Repository}}:{{.Tag}}' \
+            | grep '${{ env.APP_IMAGE }}:backup-' \
+            | sort -r \
+            | tail -n +$((${{ env.MAX_IMAGES_TO_KEEP }} + 1)) \
+            | xargs -r docker rmi -f 2>/dev/null || true
 
           echo "Cleanup complete"
 
-      - name: Rollback on Failure
-        if: failure()
-        run: |
-          echo "Deployment failed! Rolling back..."
+  build:
+    name: Build New Images
+    runs-on: self-hosted
+    needs: pre-deploy
 
-          # Stop failed containers
-          docker compose -f infra/compose.yaml down || true
+    steps:
+      - name: Build Docker Images
+        run: |
+          echo "Building Docker images with tag: ${{ needs.pre-deploy.outputs.timestamp }}"
+          docker compose -f ${{ env.COMPOSE_FILE }} build
+
+          # Get the built image name from docker compose config
+          IMAGE_NAME_FROM_COMPOSE=$(docker compose -f ${{ env.COMPOSE_FILE }} config | grep "image:" | head -n 1 | awk '{print $2}')
+
+          # Tag the newly built image
+          if [ -n "$IMAGE_NAME_FROM_COMPOSE" ]; then
+            docker tag $IMAGE_NAME_FROM_COMPOSE ${{ env.APP_IMAGE }}:${{ needs.pre-deploy.outputs.timestamp }}
+            echo "Tagged as: ${{ env.APP_IMAGE }}:${{ needs.pre-deploy.outputs.timestamp }}"
+          fi
+
+          echo "Build complete"
+          docker images | grep ${{ env.APP_IMAGE }}
+
+  deploy:
+    name: Deploy Application
+    runs-on: self-hosted
+    needs: build
+
+    steps:
+      - name: Stop Existing Containers
+        run: |
+          echo "Stopping existing containers..."
+          docker compose -f ${{ env.COMPOSE_FILE }} down
+          echo "Containers stopped"
+
+      - name: Start New Deployment
+        run: |
+          echo "Starting new deployment..."
+          docker compose -f ${{ env.COMPOSE_FILE }} up -d
+          echo "Containers started"
+
+      - name: Display Container Status
+        if: always()
+        run: |
+          echo "Container Status:"
+          docker compose -f ${{ env.COMPOSE_FILE }} ps
+
+      - name: Wait for Application Startup
+        run: |
+          echo "Waiting for application to be ready..."
+          sleep 10
+
+  verify-production:
+    name: Verify Production Domain
+    runs-on: self-hosted
+    needs: deploy
+
+    steps:
+      - name: Wait for Reverse Proxy Propagation
+        run: |
+          echo "Waiting for reverse proxy to update..."
+          sleep 5
+
+      - name: Health Check Production Domain
+        run: |
+          echo "Performing health check on ${{ env.DOMAIN }}..."
+
+          max_attempts=10
+          attempt=0
+
+          while [ $attempt -lt $max_attempts ]; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.DOMAIN }})
+
+            if [ "$response" -eq 200 ]; then
+              echo "Health check passed! HTTP status: $response"
+              echo "Site is live at ${{ env.DOMAIN }}"
+              exit 0
+            else
+              echo "Attempt $((attempt + 1))/$max_attempts - Got HTTP $response"
+              attempt=$((attempt + 1))
+              sleep 3
+            fi
+          done
+
+          echo "Health check failed after $max_attempts attempts"
+          exit 1
+
+      - name: Production Verification Summary
+        run: |
+          echo ""
+          echo "Production Verification Complete"
+          echo "================================"
+          echo "Domain: ${{ env.DOMAIN }}"
+          echo "Status: OK"
+          echo ""
+          echo "Deployment is live and accessible!"
+
+  post-deploy:
+    name: Post-Deploy Cleanup
+    runs-on: self-hosted
+    needs: [pre-deploy, verify-production]
+    if: success()
+
+    steps:
+      - name: Tag Successful Deployment
+        run: |
+          echo "Tagging successful deployment..."
+          IMAGE_NAME_FROM_COMPOSE=$(docker compose -f ${{ env.COMPOSE_FILE }} config | grep "image:" | head -n 1 | awk '{print $2}')
+
+          if [ -n "$IMAGE_NAME_FROM_COMPOSE" ]; then
+            docker tag $IMAGE_NAME_FROM_COMPOSE ${{ env.APP_IMAGE }}:latest-success
+            docker tag $IMAGE_NAME_FROM_COMPOSE ${{ env.APP_IMAGE }}:success-${{ needs.pre-deploy.outputs.timestamp }}
+            echo "Tagged as latest-success"
+          fi
+
+      - name: Cleanup Old Success Images
+        run: |
+          echo "Cleaning up old success images, keeping last ${{ env.MAX_IMAGES_TO_KEEP }}..."
+
+          # Get all success tagged images sorted by creation date, remove old ones
+          docker images --format '{{.Repository}}:{{.Tag}}' \
+            | grep '${{ env.APP_IMAGE }}:success-' \
+            | sort -r \
+            | tail -n +$((${{ env.MAX_IMAGES_TO_KEEP }} + 1)) \
+            | xargs -r docker rmi -f 2>/dev/null || true
+
+      - name: Cleanup Dangling Images
+        run: |
+          echo "Cleaning up unused Docker resources..."
+          docker image prune -f
+          docker container prune -f
+          echo "Cleanup complete"
+
+  rollback:
+    name: Rollback on Failure
+    runs-on: self-hosted
+    needs: [pre-deploy, deploy, verify-production]
+    if: failure() && needs.pre-deploy.outputs.has_backup == 'true'
+
+    steps:
+      - name: Stop Failed Deployment
+        run: |
+          echo "Deployment failed - initiating rollback"
+          docker compose -f ${{ env.COMPOSE_FILE }} down || true
+
+      - name: Restore Image from Backup
+        run: |
+          backup_tag="${{ needs.pre-deploy.outputs.backup_tag }}"
+          echo "Rolling back to: ${{ env.APP_IMAGE }}:$backup_tag"
 
           # Check if we have a latest-success image
-          if docker images ${IMAGE_NAME}:latest-success -q | grep -q .; then
-            echo "Rolling back to latest-success image..."
+          if docker images ${{ env.APP_IMAGE }}:latest-success -q | grep -q .; then
+            echo "Using latest-success image..."
 
-            # Tag the latest-success as the image to use
-            docker tag ${IMAGE_NAME}:latest-success ${IMAGE_NAME}:latest
+            # Get the image ID and retag
+            SUCCESS_IMAGE=$(docker images ${{ env.APP_IMAGE }}:latest-success -q)
+            IMAGE_NAME_FROM_COMPOSE=$(docker compose -f ${{ env.COMPOSE_FILE }} config | grep "image:" | head -n 1 | awk '{print $2}')
 
-            # Restart with the successful image
-            docker compose -f infra/compose.yaml up -d
+            if [ -n "$IMAGE_NAME_FROM_COMPOSE" ]; then
+              docker tag $SUCCESS_IMAGE $IMAGE_NAME_FROM_COMPOSE
+              echo "Backup image restored"
+            fi
+          elif docker images ${{ env.APP_IMAGE }}:$backup_tag -q | grep -q .; then
+            echo "Using backup tag: $backup_tag"
 
-            echo "Rollback complete. Service restored to last known good state."
+            # Use the backup tag
+            IMAGE_NAME_FROM_COMPOSE=$(docker compose -f ${{ env.COMPOSE_FILE }} config | grep "image:" | head -n 1 | awk '{print $2}')
+
+            if [ -n "$IMAGE_NAME_FROM_COMPOSE" ]; then
+              docker tag ${{ env.APP_IMAGE }}:$backup_tag $IMAGE_NAME_FROM_COMPOSE
+              echo "Backup image restored"
+            fi
           else
-            echo "No previous successful deployment found. Manual intervention required."
+            echo "No backup found to restore"
             exit 1
           fi
 
-      - name: Deployment Summary
+      - name: Start Rolled-Back Deployment
+        run: |
+          echo "Starting rolled-back deployment..."
+          docker compose -f ${{ env.COMPOSE_FILE }} up -d
+          sleep 5
+
+      - name: Verify Rollback Success
+        run: |
+          echo "Verifying rollback..."
+
+          # Check if containers are running
+          if docker compose -f ${{ env.COMPOSE_FILE }} ps -q | grep -q .; then
+            echo "Containers are running after rollback"
+
+            # Wait a bit and check health
+            sleep 5
+            response=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.DOMAIN }})
+
+            if [ "$response" -eq 200 ]; then
+              echo "Application is responding after rollback"
+              echo "Rollback successful"
+            else
+              echo "Application not responding after rollback (HTTP $response)"
+              echo "Container logs:"
+              docker compose -f ${{ env.COMPOSE_FILE }} logs --tail=20
+            fi
+          else
+            echo "Containers failed to start after rollback"
+            exit 1
+          fi
+
+      - name: Log Rollback Event
         if: always()
         run: |
-          if [ "${{ job.status }}" == "success" ]; then
-            echo "Deployment successful! Site is live at https://willcontact.me"
-            echo "Image: ${{ steps.build.outputs.new_image_tag }}"
+          echo "::error::Deployment failed and was rolled back to: ${{ needs.pre-deploy.outputs.backup_tag }}"
+          echo "Check the logs above for details on what failed."
+
+  notify:
+    name: Deployment Notification
+    runs-on: self-hosted
+    needs: [verify-production, rollback]
+    if: always()
+
+    steps:
+      - name: Report Deployment Result
+        run: |
+          if [ "${{ needs.verify-production.result }}" == "success" ]; then
+            echo "Deployment to production successful!"
+            echo "Site: ${{ env.DOMAIN }}"
+            echo "Time: $(date)"
+            echo ""
+            echo "All health checks passed"
+          elif [ "${{ needs.rollback.result }}" == "success" ]; then
+            echo "Deployment failed but rollback successful"
+            echo "System restored to previous version"
+            echo "Site should still be accessible at ${{ env.DOMAIN }}"
           else
-            echo "Deployment failed and rolled back to previous version"
+            echo "Deployment failed"
+            echo "Manual intervention may be required"
+            echo "Check the logs above for details"
           fi
