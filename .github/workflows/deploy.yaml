@@ -18,23 +18,136 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  IMAGE_NAME: willcontact-portfolio
+  MAX_IMAGES_TO_KEEP: 5
+
 jobs:
   deploy-homelab:
     name: Deploy to Homelab Server
     runs-on: self-hosted
 
     steps:
-      - name: Checkout main branch
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Docker Compose
+      - name: Set Build Timestamp
+        id: timestamp
+        run: echo "timestamp=$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
+
+      - name: Tag Current Running Image as Backup
+        id: backup
         run: |
-          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          docker-compose version
+          # Get current running image ID
+          CURRENT_IMAGE=$(docker compose -f infra/docker-compose.yaml images -q | head -n 1)
 
-      - name: Stop and Remove Existing Containers
-        run: docker-compose -f infra/docker-compose.yaml down
+          if [ -n "$CURRENT_IMAGE" ]; then
+            BACKUP_TAG="${IMAGE_NAME}:backup-$(date +%Y%m%d-%H%M%S)"
+            docker tag $CURRENT_IMAGE $BACKUP_TAG
+            echo "backup_tag=$BACKUP_TAG" >> $GITHUB_OUTPUT
+            echo "Created backup tag: $BACKUP_TAG"
+          else
+            echo "No running image to backup"
+            echo "backup_tag=" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
 
-      - name: Build and Start Containers
-        run: docker-compose -f infra/docker-compose.yaml up -d --build
+      - name: Stop Existing Containers
+        run: |
+          echo "Stopping existing containers..."
+          docker compose -f infra/docker-compose.yaml down
+        continue-on-error: true
+
+      - name: Build Docker Images
+        id: build
+        run: |
+          echo "Building Docker images with tag: ${{ steps.timestamp.outputs.timestamp }}"
+          docker compose -f infra/docker-compose.yaml build
+
+          # Tag the newly built image
+          NEW_IMAGE=$(docker compose -f infra/docker-compose.yaml images -q | head -n 1)
+          docker tag $NEW_IMAGE ${IMAGE_NAME}:${{ steps.timestamp.outputs.timestamp }}
+          echo "new_image_tag=${IMAGE_NAME}:${{ steps.timestamp.outputs.timestamp }}" >> $GITHUB_OUTPUT
+
+      - name: Start Containers
+        id: deploy
+        run: |
+          echo "Starting containers..."
+          docker compose -f infra/docker-compose.yaml up -d
+
+      - name: Show Container Status
+        run: docker compose -f infra/docker-compose.yaml ps
+
+      - name: Wait for Service to Start
+        run: sleep 10
+
+      - name: Health Check
+        id: health_check
+        run: |
+          echo "Performing health check on https://willcontact.me..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://willcontact.me)
+
+          if [ "$response" -eq 200 ]; then
+            echo "Health check passed! HTTP status: $response"
+            exit 0
+          else
+            echo "Health check failed! HTTP status: $response"
+            exit 1
+          fi
+
+      - name: Tag Successful Deployment
+        if: success()
+        run: |
+          echo "Tagging successful deployment..."
+          NEW_IMAGE=$(docker compose -f infra/docker-compose.yaml images -q | head -n 1)
+          docker tag $NEW_IMAGE ${IMAGE_NAME}:latest-success
+          docker tag $NEW_IMAGE ${IMAGE_NAME}:success-$(date +%Y%m%d-%H%M%S)
+          echo "Tagged as latest-success"
+
+      - name: Cleanup Old Images
+        if: success()
+        run: |
+          echo "Cleaning up old images, keeping last $MAX_IMAGES_TO_KEEP..."
+
+          # Get all tagged images sorted by creation date, skip the most recent ones
+          docker images ${IMAGE_NAME} --format "{{.ID}}|{{.CreatedAt}}" | \
+            sort -t'|' -k2 -r | \
+            tail -n +$((MAX_IMAGES_TO_KEEP + 1)) | \
+            cut -d'|' -f1 | \
+            xargs -r docker rmi -f || true
+
+          echo "Cleanup complete"
+
+      - name: Rollback on Failure
+        if: failure()
+        run: |
+          echo "Deployment failed! Rolling back..."
+
+          # Stop failed containers
+          docker compose -f infra/docker-compose.yaml down || true
+
+          # Check if we have a latest-success image
+          if docker images ${IMAGE_NAME}:latest-success -q | grep -q .; then
+            echo "Rolling back to latest-success image..."
+
+            # Tag the latest-success as the image to use
+            docker tag ${IMAGE_NAME}:latest-success ${IMAGE_NAME}:latest
+
+            # Restart with the successful image
+            docker compose -f infra/docker-compose.yaml up -d
+
+            echo "Rollback complete. Service restored to last known good state."
+          else
+            echo "No previous successful deployment found. Manual intervention required."
+            exit 1
+          fi
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "Deployment successful! Site is live at https://willcontact.me"
+            echo "Image: ${{ steps.build.outputs.new_image_tag }}"
+          else
+            echo "Deployment failed and rolled back to previous version"
+          fi
