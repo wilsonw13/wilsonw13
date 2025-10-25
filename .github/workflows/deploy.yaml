@@ -7,8 +7,9 @@ on:
     paths:
       - "backend/**"
       - "frontend/**"
+      - ".github/workflows/deploy.yaml"
       - "infra/Dockerfile"
-      - "infra/docker-compose.yaml"
+      - "infra/compose.yaml"
       - "infra/.dockerignore"
       - "package.json"
 
