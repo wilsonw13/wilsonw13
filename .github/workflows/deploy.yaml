@@ -40,7 +40,7 @@ jobs:
         id: backup
         run: |
           # Get current running image ID
-          CURRENT_IMAGE=$(docker compose -f infra/docker-compose.yaml images -q | head -n 1)
+          CURRENT_IMAGE=$(docker compose -f infra/compose.yaml images -q | head -n 1)
 
           if [ -n "$CURRENT_IMAGE" ]; then
             BACKUP_TAG="${IMAGE_NAME}:backup-$(date +%Y%m%d-%H%M%S)"
@@ -56,17 +56,17 @@ jobs:
       - name: Stop Existing Containers
         run: |
           echo "Stopping existing containers..."
-          docker compose -f infra/docker-compose.yaml down
+          docker compose -f infra/compose.yaml down
         continue-on-error: true
 
       - name: Build Docker Images
         id: build
         run: |
           echo "Building Docker images with tag: ${{ steps.timestamp.outputs.timestamp }}"
-          docker compose -f infra/docker-compose.yaml build
+          docker compose -f infra/compose.yaml build
 
           # Tag the newly built image
-          NEW_IMAGE=$(docker compose -f infra/docker-compose.yaml images -q | head -n 1)
+          NEW_IMAGE=$(docker compose -f infra/compose.yaml images -q | head -n 1)
           docker tag $NEW_IMAGE ${IMAGE_NAME}:${{ steps.timestamp.outputs.timestamp }}
           echo "new_image_tag=${IMAGE_NAME}:${{ steps.timestamp.outputs.timestamp }}" >> $GITHUB_OUTPUT
 
@@ -74,10 +74,10 @@ jobs:
         id: deploy
         run: |
           echo "Starting containers..."
-          docker compose -f infra/docker-compose.yaml up -d
+          docker compose -f infra/compose.yaml up -d
 
       - name: Show Container Status
-        run: docker compose -f infra/docker-compose.yaml ps
+        run: docker compose -f infra/compose.yaml ps
 
       - name: Wait for Service to Start
         run: sleep 10
@@ -100,7 +100,7 @@ jobs:
         if: success()
         run: |
           echo "Tagging successful deployment..."
-          NEW_IMAGE=$(docker compose -f infra/docker-compose.yaml images -q | head -n 1)
+          NEW_IMAGE=$(docker compose -f infra/compose.yaml images -q | head -n 1)
           docker tag $NEW_IMAGE ${IMAGE_NAME}:latest-success
           docker tag $NEW_IMAGE ${IMAGE_NAME}:success-$(date +%Y%m%d-%H%M%S)
           echo "Tagged as latest-success"
@@ -125,7 +125,7 @@ jobs:
           echo "Deployment failed! Rolling back..."
 
           # Stop failed containers
-          docker compose -f infra/docker-compose.yaml down || true
+          docker compose -f infra/compose.yaml down || true
 
           # Check if we have a latest-success image
           if docker images ${IMAGE_NAME}:latest-success -q | grep -q .; then
@@ -135,7 +135,7 @@ jobs:
             docker tag ${IMAGE_NAME}:latest-success ${IMAGE_NAME}:latest
 
             # Restart with the successful image
-            docker compose -f infra/docker-compose.yaml up -d
+            docker compose -f infra/compose.yaml up -d
 
             echo "Rollback complete. Service restored to last known good state."
           else
