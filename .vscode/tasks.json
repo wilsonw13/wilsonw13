@@ -14,12 +14,9 @@
         "clear": true,
         "group": "dev-servers"
       },
-      "runOptions": {
-        "runOn": "folderOpen" // Automatically runs when you open the project
-      },
       "group": {
         "kind": "build",
-        "isDefault": true // Makes this the default task for Ctrl + Shift + B
+        "isDefault": true
       }
     }
   ]

@@ -7,6 +7,6 @@ services:
     restart: unless-stopped
     container_name: portfolio
     ports:
-      - "3000:3000"
+      - "127.0.0.1:8000:3000"
     volumes:
       - ./logs:/app/logs
