@@ -10,6 +10,7 @@ on:
       - "infra/Dockerfile"
       - "infra/compose.yaml"
       - "infra/.dockerignore"
+      - ".github/workflows/deploy.yaml"
       - "package.json"
 
   workflow_dispatch:
