@@ -35,8 +35,20 @@ jobs:
       timestamp: ${{ steps.timestamp.outputs.timestamp }}
 
     steps:
+      - name: Pre-Cleanup Workspace
+        run: |
+          echo "Cleaning workspace with proper permissions..."
+          # Fix permissions on any files created by Docker
+          sudo chown -R $(whoami):$(whoami) . || true
+          # Remove any files that might cause conflicts
+          sudo rm -rf /srv/github-runners/portfolio-runner/_work/wilsonw13/wilsonw13/* || true
+          echo "Pre-cleanup complete"
+
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          clean: true
 
       - name: Set Build Timestamp
         id: timestamp
@@ -216,6 +228,13 @@ jobs:
           docker container prune -f
           echo "Cleanup complete"
 
+      - name: Fix Workspace Permissions
+        if: always()
+        run: |
+          echo "Fixing workspace permissions for next run..."
+          sudo chown -R $(whoami):$(whoami) /srv/github-runners/portfolio-runner/_work/wilsonw13/wilsonw13 || true
+          echo "Permissions fixed"
+
   rollback:
     name: Rollback on Failure
     runs-on: self-hosted
@@ -297,6 +316,13 @@ jobs:
           echo "::error::Deployment failed and was rolled back to: ${{ needs.pre-deploy.outputs.backup_tag }}"
           echo "Check the logs above for details on what failed."
 
+      - name: Fix Workspace Permissions
+        if: always()
+        run: |
+          echo "Fixing workspace permissions..."
+          sudo chown -R $(whoami):$(whoami) /srv/github-runners/portfolio-runner/_work/wilsonw13/wilsonw13 || true
+          echo "Permissions fixed"
+
   notify:
     name: Deployment Notification
     runs-on: self-hosted
@@ -321,3 +347,16 @@ jobs:
             echo "Manual intervention may be required"
             echo "Check the logs above for details"
           fi
+
+  final-cleanup:
+    name: Final Workspace Cleanup
+    runs-on: self-hosted
+    needs: [notify]
+    if: always()
+
+    steps:
+      - name: Fix All Workspace Permissions
+        run: |
+          echo "Performing final workspace cleanup..."
+          sudo chown -R $(whoami):$(whoami) /srv/github-runners/portfolio-runner/_work/wilsonw13/wilsonw13 || true
+          echo "Final cleanup complete - workspace ready for next run"
